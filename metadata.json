@@ -1,0 +1,8 @@
+{
+  "name": "Kaizen8",
+  "description": "Kaizen8: A companion learning app featuring AI-powered flashcard generation, audio transcription, and social study features with multiple UI themes.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
