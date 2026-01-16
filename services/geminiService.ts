@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Flashcard } from '../types';
+import { Flashcard, InfographicData } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -142,6 +142,96 @@ export const transcribeAndSummarizeAudio = async (audioFile: File): Promise<{ te
 
   } catch (error) {
     console.error("Gemini Transcription Error:", error);
+    throw error;
+  }
+};
+
+export const generateInfographicAndCards = async (files: File[]): Promise<{ infographic: InfographicData, flashcards: Flashcard[] }> => {
+  try {
+    const parts = await Promise.all(
+      files.map(async (file) => ({
+        inlineData: {
+          data: await fileToGenerativePart(file),
+          mimeType: file.type,
+        },
+      }))
+    );
+
+    const prompt = `Analyze the provided visual content (documents, diagrams, or slides). 
+    1. Create a "Learning Infographic" structure: A structured summary divided into 3-5 distinct sections, each with a title, a brief content summary, a suggested emoji/icon, and a color theme.
+    2. Generate a set of 5-10 high-quality flashcards based on the material.
+    3. Return JSON.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: {
+        parts: [
+          ...parts,
+          { text: prompt }
+        ]
+      },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            infographic: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                summary: { type: Type.STRING },
+                sections: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      title: { type: Type.STRING },
+                      content: { type: Type.STRING },
+                      icon: { type: Type.STRING },
+                      color: { type: Type.STRING, enum: ['blue', 'green', 'purple', 'orange', 'red'] }
+                    }
+                  }
+                }
+              },
+              required: ['title', 'summary', 'sections']
+            },
+            flashcards: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  front: { type: Type.STRING },
+                  back: { type: Type.STRING },
+                  category: { type: Type.STRING },
+                  difficulty: { type: Type.STRING, enum: ['easy', 'medium', 'hard'] },
+                  deepDiveQuery: { type: Type.STRING }
+                },
+                required: ['front', 'back', 'category', 'difficulty']
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const result = JSON.parse(response.text || '{}');
+    
+    const flashcards = (result.flashcards || []).map((c: any, index: number) => ({
+        id: `info-gen-${Date.now()}-${index}`,
+        front: c.front,
+        back: c.back,
+        category: c.category,
+        difficulty: c.difficulty,
+        deepDiveUrl: `https://www.google.com/search?q=${encodeURIComponent(c.deepDiveQuery || c.front)}`
+    }));
+
+    return {
+      infographic: result.infographic,
+      flashcards
+    };
+
+  } catch (error) {
+    console.error("Gemini Infographic Generation Error:", error);
     throw error;
   }
 };

@@ -17,6 +17,20 @@ export interface Deck {
   cards: Flashcard[];
   tags: string[]; // e.g., "Music", "Coding", "Spanish"
   createdAt: number;
+  infographic?: InfographicData; // Optional infographic attached to the deck
+}
+
+export interface InfographicSection {
+  title: string;
+  content: string;
+  icon: string; // Emoji or icon name
+  color: string; // Hex or tailwind class hint
+}
+
+export interface InfographicData {
+  title: string;
+  summary: string;
+  sections: InfographicSection[];
 }
 
 export interface Challenge {
@@ -58,4 +72,4 @@ export interface MirrorPayload {
   totalCards?: number;
 }
 
-export type AppView = 'home' | 'deck-view' | 'create' | 'study-mode' | 'transcribe' | 'mirror' | 'explore' | 'mirrored-session';
+export type AppView = 'home' | 'deck-view' | 'create' | 'study-mode' | 'transcribe' | 'mirror' | 'explore' | 'mirrored-session' | 'import';

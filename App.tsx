@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutGrid, Plus, Mic, Tv, User, Search, Play, BookOpen, Compass, X, Moon, Sun } from 'lucide-react';
+import { LayoutGrid, Plus, Mic, Tv, User, Search, Play, BookOpen, Compass, X, Moon, Sun, Upload } from 'lucide-react';
 import clsx from 'clsx';
 import { Deck, ThemeName, AppView } from './types';
 import { THEMES, INITIAL_DECKS } from './constants';
@@ -9,6 +9,7 @@ import AudioTranscriber from './components/AudioTranscriber';
 import MirrorMode from './components/MirrorMode';
 import MirroredSession from './components/MirroredSession';
 import ChallengesView from './components/ChallengesView';
+import ImportView from './components/ImportView';
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<ThemeName>('playful');
@@ -71,6 +72,8 @@ const App: React.FC = () => {
         return <FlashcardCreator onDeckCreated={handleDeckCreated} onCancel={() => setView('home')} />;
       case 'transcribe':
         return <AudioTranscriber onDeckCreated={handleDeckCreated} onCancel={() => setView('home')} />;
+      case 'import':
+        return <ImportView onDeckCreated={handleDeckCreated} onCancel={() => setView('home')} />;
       case 'study-mode':
         if (!activeDeck) return null;
         return <StudySession deck={activeDeck} onExit={() => setView('home')} isBroadcasting={isBroadcasting} />;
@@ -128,20 +131,27 @@ const App: React.FC = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-3 gap-3 mb-8">
               <button 
                 onClick={() => setView('create')}
                 className="p-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/30 flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
               >
-                <Plus size={32} />
-                <span className="font-bold">New Deck</span>
+                <Plus size={24} />
+                <span className="font-bold text-xs">New Deck</span>
               </button>
               <button 
                 onClick={() => setView('transcribe')}
                 className="p-4 bg-card text-text rounded-2xl shadow-sm border border-transparent hover:border-accent flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
               >
-                <Mic size={32} className="text-accent" />
-                <span className="font-bold">Audio Note</span>
+                <Mic size={24} className="text-accent" />
+                <span className="font-bold text-xs">Audio</span>
+              </button>
+              <button 
+                onClick={() => setView('import')}
+                className="p-4 bg-card text-text rounded-2xl shadow-sm border border-transparent hover:border-secondary flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+              >
+                <Upload size={24} className="text-secondary" />
+                <span className="font-bold text-xs">Import</span>
               </button>
             </div>
 
@@ -205,7 +215,7 @@ const App: React.FC = () => {
   };
 
   // Bottom Navigation (Hide in immersive modes)
-  const showNav = !['study-mode', 'create', 'transcribe', 'mirrored-session'].includes(view);
+  const showNav = !['study-mode', 'create', 'transcribe', 'mirrored-session', 'import'].includes(view);
 
   // If we are broadcasting, we might want to highlight the mirror tab or show a banner, 
   // but for now, the status is handled inside the Mirror view or the Study session header.
