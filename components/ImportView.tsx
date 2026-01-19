@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Upload, FileText, Image as ImageIcon, Film, Loader2, ArrowLeft, Save, Sparkles, X } from 'lucide-react';
 import { generateInfographicAndCards } from '../services/geminiService';
 import { Deck, InfographicData, Flashcard } from '../types';
@@ -13,16 +13,32 @@ const ImportView: React.FC<ImportViewProps> = ({ onDeckCreated, onCancel }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ infographic: InfographicData, flashcards: Flashcard[] } | null>(null);
+  const fileUrlsRef = useRef<string[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+      const newFiles = Array.from(e.target.files);
+      const newUrls = newFiles.map(file => URL.createObjectURL(file));
+      fileUrlsRef.current = [...fileUrlsRef.current, ...newUrls];
+      setFiles(prev => [...prev, ...newFiles]);
     }
   };
 
   const removeFile = (index: number) => {
+    // Revoke the URL for the removed file
+    if (fileUrlsRef.current[index]) {
+      URL.revokeObjectURL(fileUrlsRef.current[index]);
+    }
+    fileUrlsRef.current = fileUrlsRef.current.filter((_, i) => i !== index);
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
+
+  // Cleanup all object URLs on component unmount
+  useEffect(() => {
+    return () => {
+      fileUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const handleGenerate = async () => {
     if (files.length === 0) return;
@@ -139,11 +155,11 @@ const ImportView: React.FC<ImportViewProps> = ({ onDeckCreated, onCancel }) => {
                 {files.map((file, idx) => (
                     <div key={idx} className="relative aspect-video bg-card rounded-xl border border-gray-200 shadow-sm overflow-hidden flex items-center justify-center group">
                         {file.type.startsWith('image/') ? (
-                            <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
+                            <img src={fileUrlsRef.current[idx]} alt="preview" className="w-full h-full object-cover" />
                         ) : (
                             <FileText className="text-gray-400" size={32} />
                         )}
-                        <button 
+                        <button
                             onClick={() => removeFile(idx)}
                             className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >

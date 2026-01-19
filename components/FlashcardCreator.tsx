@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Upload, Loader2, Plus, X } from 'lucide-react';
 import { generateFlashcardsFromImages } from '../services/geminiService';
 import { Deck, Flashcard } from '../types';
@@ -13,16 +13,32 @@ const FlashcardCreator: React.FC<FlashcardCreatorProps> = ({ onDeckCreated, onCa
   const [topic, setTopic] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const imageUrlsRef = useRef<string[]>([]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setImages(prev => [...prev, ...Array.from(e.target.files!)]);
+      const newFiles = Array.from(e.target.files);
+      const newUrls = newFiles.map(file => URL.createObjectURL(file));
+      imageUrlsRef.current = [...imageUrlsRef.current, ...newUrls];
+      setImages(prev => [...prev, ...newFiles]);
     }
   };
 
   const removeImage = (index: number) => {
+    // Revoke the URL for the removed image
+    if (imageUrlsRef.current[index]) {
+      URL.revokeObjectURL(imageUrlsRef.current[index]);
+    }
+    imageUrlsRef.current = imageUrlsRef.current.filter((_, i) => i !== index);
     setImages(prev => prev.filter((_, i) => i !== index));
   };
+
+  // Cleanup all object URLs on component unmount
+  useEffect(() => {
+    return () => {
+      imageUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const handleGenerate = async () => {
     if (images.length === 0 || !topic) {
@@ -72,8 +88,8 @@ const FlashcardCreator: React.FC<FlashcardCreatorProps> = ({ onDeckCreated, onCa
           <div className="grid grid-cols-2 gap-4">
             {images.map((img, idx) => (
               <div key={idx} className="relative aspect-square rounded-xl overflow-hidden shadow-md">
-                <img src={URL.createObjectURL(img)} alt="preview" className="w-full h-full object-cover" />
-                <button 
+                <img src={imageUrlsRef.current[idx]} alt="preview" className="w-full h-full object-cover" />
+                <button
                   onClick={() => removeImage(idx)}
                   className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-lg"
                 >
