@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Deck, Flashcard } from '../types';
 import { mirrorService } from '../services/mirrorService';
 import { ArrowLeft, RotateCcw, Check, X, ExternalLink, HelpCircle, Share2 } from 'lucide-react';
@@ -17,6 +17,7 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onExit, isBroadcastin
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const lastBroadcastCard = useRef<string | null>(null);
 
   useEffect(() => {
     // Shuffle cards on init
@@ -25,11 +26,15 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onExit, isBroadcastin
   }, [deck]);
 
   const currentCard = queue[currentCardIndex];
-  const progress = Math.round(((completed.length) / deck.cards.length) * 100);
+  const progress = useMemo(() =>
+    Math.round(((completed.length) / deck.cards.length) * 100),
+    [completed.length, deck.cards.length]
+  );
 
-  // Broadcast State Effect
+  // Optimized broadcast - only when card changes or broadcasting is enabled
   useEffect(() => {
-    if (isBroadcasting && currentCard) {
+    if (isBroadcasting && currentCard && lastBroadcastCard.current !== currentCard.id) {
+      lastBroadcastCard.current = currentCard.id;
       mirrorService.broadcast({
         type: 'SYNC',
         deckTitle: deck.title,

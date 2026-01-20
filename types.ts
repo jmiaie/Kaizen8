@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 export interface Flashcard {
   id: string;
@@ -41,7 +41,7 @@ export interface Challenge {
   mode: 'solo' | 'multi' | 'both'; // "simultaneously" support
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
-  icon: React.ReactNode | string; 
+  icon: ReactNode | string; 
 }
 
 export type ThemeName = 'playful' | 'focus' | 'night';

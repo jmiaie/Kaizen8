@@ -1,7 +1,31 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Flashcard, InfographicData } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Constants
+const GEMINI_MODEL = "gemini-3-flash-preview";
+const createDeepDiveUrl = (query: string) =>
+  `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// API Response Interfaces
+interface RawFlashcard {
+  front: string;
+  back: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  deepDiveQuery?: string;
+}
+
+interface TranscriptionResponse {
+  transcript: string;
+  flashcards: RawFlashcard[];
+}
+
+interface InfographicResponse {
+  infographic: InfographicData;
+  flashcards: RawFlashcard[];
+}
 
 // Helper to convert file to base64
 export const fileToGenerativePart = async (file: File): Promise<string> => {
@@ -38,7 +62,7 @@ export const generateFlashcardsFromImages = async (
     Return JSON only.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: GEMINI_MODEL,
       contents: {
         parts: [
           ...parts,
@@ -64,15 +88,15 @@ export const generateFlashcardsFromImages = async (
       }
     });
 
-    const rawCards = JSON.parse(response.text || '[]');
-    
-    return rawCards.map((c: any, index: number) => ({
+    const rawCards: RawFlashcard[] = JSON.parse(response.text || '[]');
+
+    return rawCards.map((c, index) => ({
       id: `gen-${Date.now()}-${index}`,
       front: c.front,
       back: c.back,
       category: c.category,
       difficulty: c.difficulty,
-      deepDiveUrl: `https://www.google.com/search?q=${encodeURIComponent(c.deepDiveQuery || c.front)}`
+      deepDiveUrl: createDeepDiveUrl(c.deepDiveQuery || c.front)
     }));
 
   } catch (error) {
@@ -89,7 +113,7 @@ export const transcribeAndSummarizeAudio = async (audioFile: File): Promise<{ te
     Return a JSON object with a 'transcript' string and a 'flashcards' array.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: GEMINI_MODEL,
       contents: {
         parts: [
           {
@@ -124,15 +148,15 @@ export const transcribeAndSummarizeAudio = async (audioFile: File): Promise<{ te
       }
     });
 
-    const result = JSON.parse(response.text || '{}');
-    
-    const flashcards = (result.flashcards || []).map((c: any, index: number) => ({
+    const result: TranscriptionResponse = JSON.parse(response.text || '{}');
+
+    const flashcards = (result.flashcards || []).map((c, index) => ({
         id: `audio-gen-${Date.now()}-${index}`,
         front: c.front,
         back: c.back,
         category: c.category || 'Audio Note',
-        difficulty: (c.difficulty || 'medium') as 'easy' | 'medium' | 'hard',
-        deepDiveUrl: `https://www.google.com/search?q=${encodeURIComponent(c.front)}`
+        difficulty: c.difficulty || 'medium',
+        deepDiveUrl: createDeepDiveUrl(c.front)
     }));
 
     return {
@@ -163,7 +187,7 @@ export const generateInfographicAndCards = async (files: File[]): Promise<{ info
     3. Return JSON.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: GEMINI_MODEL,
       contents: {
         parts: [
           ...parts,
@@ -214,15 +238,15 @@ export const generateInfographicAndCards = async (files: File[]): Promise<{ info
       }
     });
 
-    const result = JSON.parse(response.text || '{}');
-    
-    const flashcards = (result.flashcards || []).map((c: any, index: number) => ({
+    const result: InfographicResponse = JSON.parse(response.text || '{}');
+
+    const flashcards = (result.flashcards || []).map((c, index) => ({
         id: `info-gen-${Date.now()}-${index}`,
         front: c.front,
         back: c.back,
         category: c.category,
         difficulty: c.difficulty,
-        deepDiveUrl: `https://www.google.com/search?q=${encodeURIComponent(c.deepDiveQuery || c.front)}`
+        deepDiveUrl: createDeepDiveUrl(c.deepDiveQuery || c.front)
     }));
 
     return {

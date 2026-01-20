@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { LayoutGrid, Plus, Mic, Tv, User, Search, Play, BookOpen, Compass, X, Moon, Sun, Upload } from 'lucide-react';
 import clsx from 'clsx';
 import { Deck, ThemeName, AppView } from './types';
@@ -18,7 +18,7 @@ const App: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>(INITIAL_DECKS);
   const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Mirroring State
   const [isBroadcasting, setIsBroadcasting] = useState(false);
 
@@ -34,36 +34,38 @@ const App: React.FC = () => {
     root.style.setProperty('--color-accent', t.accent);
   }, [theme]);
 
-  const handleDeckCreated = (newDeck: Deck) => {
+  const handleDeckCreated = useCallback((newDeck: Deck) => {
     setDecks(prev => [newDeck, ...prev]);
     setView('home');
-  };
+  }, []);
 
-  const startSession = (deck: Deck) => {
+  const startSession = useCallback((deck: Deck) => {
     setActiveDeck(deck);
     setView('study-mode');
-  };
+  }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = useCallback(() => {
     if (theme === 'night') {
       setTheme(lastLightTheme);
     } else {
       setLastLightTheme(theme);
       setTheme('night');
     }
-  };
+  }, [theme, lastLightTheme]);
 
-  const handleThemeChange = (newTheme: ThemeName) => {
+  const handleThemeChange = useCallback((newTheme: ThemeName) => {
       setTheme(newTheme);
       if (newTheme !== 'night') {
           setLastLightTheme(newTheme);
       }
-  };
+  }, []);
 
-  const filteredDecks = decks.filter(deck => 
-    deck.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    deck.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    deck.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredDecks = useMemo(() =>
+    decks.filter(deck =>
+      deck.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      deck.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      deck.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    ), [decks, searchQuery]
   );
 
   const renderContent = () => {
