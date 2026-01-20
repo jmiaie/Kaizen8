@@ -1,5 +1,5 @@
-#Project: Kaizen8
-Author / Developer / Software Engineer: Jeff Milam
+# Project: Kaizen8
+# Developer / Software Engineer: Jeff Milam
 
 This contains everything you need to run your app locally.
 
