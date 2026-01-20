@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Upload, FileText, Image as ImageIcon, Film, Loader2, ArrowLeft, Save, Sparkles, X } from 'lucide-react';
+import { Upload, FileText, Loader2, ArrowLeft, Save, Sparkles, X } from 'lucide-react';
 import { generateInfographicAndCards } from '../services/geminiService';
 import { Deck, InfographicData, Flashcard } from '../types';
 import clsx from 'clsx';
 import { useFileUpload } from '../hooks/useFileUpload';
+import { getSectionColor } from '../utils/helpers';
 
 interface ImportViewProps {
   onDeckCreated: (deck: Deck) => void;
@@ -41,17 +42,6 @@ const ImportView: React.FC<ImportViewProps> = ({ onDeckCreated, onCancel }) => {
         infographic: result.infographic
     };
     onDeckCreated(newDeck);
-  };
-
-  const getSectionColor = (color: string) => {
-    switch (color) {
-      case 'blue': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'green': return 'bg-green-100 text-green-800 border-green-200';
-      case 'purple': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'orange': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'red': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
   };
 
   if (result) {
@@ -163,16 +153,6 @@ const ImportView: React.FC<ImportViewProps> = ({ onDeckCreated, onCancel }) => {
                     className="hidden" 
                 />
             </label>
-
-            {/* Simulated options for other file types */}
-            <div className="flex gap-2 mt-4 justify-center">
-                 <button className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg text-xs font-bold text-text opacity-60 hover:opacity-100 transition-opacity border border-transparent hover:border-gray-200">
-                    <FileText size={14} /> Documents
-                 </button>
-                 <button className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg text-xs font-bold text-text opacity-60 hover:opacity-100 transition-opacity border border-transparent hover:border-gray-200">
-                    <Film size={14} /> Videos
-                 </button>
-            </div>
         </div>
       </div>
 

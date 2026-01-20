@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { LayoutGrid, Plus, Mic, Tv, User, Search, Play, BookOpen, Compass, X, Moon, Sun, Upload } from 'lucide-react';
+import { LayoutGrid, Plus, Mic, Tv, Search, Play, BookOpen, Compass, X, Moon, Sun, Upload } from 'lucide-react';
 import clsx from 'clsx';
 import { Deck, ThemeName, AppView } from './types';
 import { THEMES, INITIAL_DECKS } from './constants';
@@ -238,7 +238,6 @@ const App: React.FC = () => {
           <NavButton active={view === 'home'} onClick={() => setView('home')} icon={<LayoutGrid />} label="Home" />
           <NavButton active={view === 'explore'} onClick={() => setView('explore')} icon={<Compass />} label="Explore" />
           <NavButton active={view === 'mirror'} onClick={() => setView('mirror')} icon={<Tv />} label={isBroadcasting ? "Broadcasting" : "Mirror"} />
-          <NavButton active={false} onClick={() => {}} icon={<User />} label="Profile" />
         </nav>
       )}
     </div>

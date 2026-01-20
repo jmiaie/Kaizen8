@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { INITIAL_CHALLENGES } from '../constants';
-import { Trophy, Users, User, Zap, Briefcase } from 'lucide-react';
+import { Trophy, Users, User, Briefcase } from 'lucide-react';
 import clsx from 'clsx';
 
 const ChallengesView: React.FC = () => {
@@ -114,15 +114,6 @@ const ChallengesView: React.FC = () => {
              </button>
           </div>
         )}
-      </div>
-
-      <div className="mt-8 p-6 bg-gradient-to-r from-accent to-primary rounded-2xl text-white text-center shadow-lg">
-        <Zap className="mx-auto mb-2" size={32} />
-        <h3 className="font-bold text-lg">Suggest a Challenge</h3>
-        <p className="text-white/80 text-sm mb-4">Have a great learning game idea?</p>
-        <button className="px-4 py-2 bg-white text-primary rounded-full text-sm font-bold shadow-sm">
-            Submit Idea
-        </button>
       </div>
     </div>
   );

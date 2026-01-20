@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Deck, Flashcard } from '../types';
 import { mirrorService } from '../services/mirrorService';
-import { ArrowLeft, RotateCcw, Check, X, ExternalLink, HelpCircle, Share2 } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Check, X, ExternalLink, Share2 } from 'lucide-react';
 import clsx from 'clsx';
+import { shuffleArray } from '../utils/helpers';
+import { CARD_TRANSITION_DELAY } from '../utils/constants';
 
 interface StudySessionProps {
   deck: Deck;
@@ -20,8 +22,8 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onExit, isBroadcastin
   const lastBroadcastCard = useRef<string | null>(null);
 
   useEffect(() => {
-    // Shuffle cards on init
-    const shuffled = [...deck.cards].sort(() => Math.random() - 0.5);
+    // Shuffle cards on init using Fisher-Yates algorithm
+    const shuffled = shuffleArray(deck.cards);
     setQueue(shuffled);
   }, [deck]);
 
@@ -48,7 +50,7 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onExit, isBroadcastin
 
   const handleCardResult = (known: boolean) => {
     setIsFlipped(false);
-    
+
     // Small delay to allow flip back animation if needed, but usually we just slide
     setTimeout(() => {
       if (known) {
@@ -72,7 +74,7 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onExit, isBroadcastin
         setQueue(newQueue);
         // Don't increment index, effectively showing next card which slid into this slot
       }
-    }, 200);
+    }, CARD_TRANSITION_DELAY);
   };
 
   if (!currentCard || completed.length === deck.cards.length) {
@@ -119,9 +121,7 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onExit, isBroadcastin
                 />
             </div>
         </div>
-        <button className="p-2 rounded-full hover:bg-black/5 text-text">
-          <HelpCircle size={20}/>
-        </button>
+        <div className="w-10"></div> {/* Spacer for visual balance */}
       </div>
 
       {/* Card Area */}

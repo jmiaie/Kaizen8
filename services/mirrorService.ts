@@ -1,6 +1,5 @@
 import { MirrorPayload } from '../types';
-
-const CHANNEL_NAME = 'kaizen8_mirror_channel';
+import { MIRROR_CHANNEL_NAME } from '../utils/constants';
 
 class MirrorService {
   private channel: BroadcastChannel | null = null;
@@ -8,7 +7,7 @@ class MirrorService {
 
   constructor() {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      this.channel = new BroadcastChannel(CHANNEL_NAME);
+      this.channel = new BroadcastChannel(MIRROR_CHANNEL_NAME);
       this.channel.onmessage = (event) => {
         this.notifyListeners(event.data);
       };
@@ -33,9 +32,17 @@ class MirrorService {
   }
 
   public close() {
-    // We don't necessarily close the channel to allow reconnection, 
-    // but we can broadcast a close event.
+    // Broadcast a close event before closing
     this.broadcast({ type: 'CLOSE' });
+  }
+
+  public destroy() {
+    // Cleanup method to properly close the channel and remove listeners
+    if (this.channel) {
+      this.channel.close();
+      this.channel = null;
+    }
+    this.listeners = [];
   }
 }
 
