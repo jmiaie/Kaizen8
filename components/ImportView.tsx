@@ -5,6 +5,8 @@ import { Deck, InfographicData, Flashcard } from '../types';
 import clsx from 'clsx';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { getSectionColor } from '../utils/helpers';
+import { ErrorMessage } from './ui';
+import { getUserFriendlyMessage, logError } from '../utils/errorLogger';
 
 interface ImportViewProps {
   onDeckCreated: (deck: Deck) => void;
@@ -15,16 +17,18 @@ const ImportView: React.FC<ImportViewProps> = ({ onDeckCreated, onCancel }) => {
   const { files, fileUrls, handleFileChange, removeFile } = useFileUpload();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ infographic: InfographicData, flashcards: Flashcard[] } | null>(null);
+  const [error, setError] = useState<string>('');
 
   const handleGenerate = async () => {
     if (files.length === 0) return;
     setLoading(true);
+    setError('');
     try {
       const data = await generateInfographicAndCards(files);
       setResult(data);
     } catch (e) {
-      console.error(e);
-      alert("Failed to process files. Please try again.");
+      logError(e, { component: 'ImportView', action: 'handleGenerate', metadata: { fileCount: files.length } });
+      setError(`Failed to process files. ${getUserFriendlyMessage(e)}`);
     } finally {
       setLoading(false);
     }
@@ -156,7 +160,8 @@ const ImportView: React.FC<ImportViewProps> = ({ onDeckCreated, onCancel }) => {
         </div>
       </div>
 
-      <div className="mt-auto">
+      <div className="mt-auto space-y-4">
+        <ErrorMessage message={error} />
         <button
             onClick={handleGenerate}
             disabled={files.length === 0 || loading}

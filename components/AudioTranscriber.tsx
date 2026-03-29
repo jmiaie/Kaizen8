@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Mic, FileAudio, Loader2, ArrowRight } from 'lucide-react';
 import { transcribeAndSummarizeAudio } from '../services/geminiService';
 import { Deck } from '../types';
+import { ErrorMessage } from './ui';
+import { getUserFriendlyMessage, logError } from '../utils/errorLogger';
 
 interface AudioTranscriberProps {
     onDeckCreated: (deck: Deck) => void;
@@ -12,6 +14,7 @@ const AudioTranscriber: React.FC<AudioTranscriberProps> = ({ onDeckCreated, onCa
     const [isRecording, setIsRecording] = useState(false); // UI simulation only for this demo
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string>('');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -22,6 +25,7 @@ const AudioTranscriber: React.FC<AudioTranscriberProps> = ({ onDeckCreated, onCa
     const handleProcess = async () => {
         if (!file) return;
         setLoading(true);
+        setError('');
         try {
             const result = await transcribeAndSummarizeAudio(file);
             const newDeck: Deck = {
@@ -34,7 +38,8 @@ const AudioTranscriber: React.FC<AudioTranscriberProps> = ({ onDeckCreated, onCa
             };
             onDeckCreated(newDeck);
         } catch (e) {
-            alert("Error processing audio. Ensure API Key is set.");
+            logError(e, { component: 'AudioTranscriber', action: 'handleProcess' });
+            setError(`Error processing audio. ${getUserFriendlyMessage(e)}`);
         } finally {
             setLoading(false);
         }
@@ -74,6 +79,8 @@ const AudioTranscriber: React.FC<AudioTranscriberProps> = ({ onDeckCreated, onCa
                     <input type="file" accept="audio/*" onChange={handleFileChange} className="hidden" />
                 </label>
             </div>
+
+            <ErrorMessage message={error} />
 
             <button 
                 disabled={!file || loading}

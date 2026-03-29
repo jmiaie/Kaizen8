@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Flashcard, InfographicData } from '../types';
+import { logError } from '../utils/errorLogger';
 
 // Constants
 const GEMINI_MODEL = "gemini-3-flash-preview";
@@ -100,7 +101,11 @@ export const generateFlashcardsFromImages = async (
     }));
 
   } catch (error) {
-    console.error("Gemini Flashcard Generation Error:", error);
+    logError(error, {
+      component: 'geminiService',
+      action: 'generateFlashcardsFromImages',
+      metadata: { fileCount: files.length, topic }
+    });
     throw error;
   }
 };
@@ -165,7 +170,11 @@ export const transcribeAndSummarizeAudio = async (audioFile: File): Promise<{ te
     };
 
   } catch (error) {
-    console.error("Gemini Transcription Error:", error);
+    logError(error, {
+      component: 'geminiService',
+      action: 'transcribeAndSummarizeAudio',
+      metadata: { audioType: audioFile.type }
+    });
     throw error;
   }
 };
@@ -255,7 +264,11 @@ export const generateInfographicAndCards = async (files: File[]): Promise<{ info
     };
 
   } catch (error) {
-    console.error("Gemini Infographic Generation Error:", error);
+    logError(error, {
+      component: 'geminiService',
+      action: 'generateInfographicAndCards',
+      metadata: { fileCount: files.length }
+    });
     throw error;
   }
 };

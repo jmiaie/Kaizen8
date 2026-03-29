@@ -3,6 +3,7 @@ import { Camera, Upload, Loader2, Plus, X } from 'lucide-react';
 import { generateFlashcardsFromImages } from '../services/geminiService';
 import { Deck, Flashcard } from '../types';
 import { useFileUpload } from '../hooks/useFileUpload';
+import { getUserFriendlyMessage, logError } from '../utils/errorLogger';
 
 interface FlashcardCreatorProps {
   onDeckCreated: (deck: Deck) => void;
@@ -36,7 +37,8 @@ const FlashcardCreator: React.FC<FlashcardCreatorProps> = ({ onDeckCreated, onCa
       };
       onDeckCreated(newDeck);
     } catch (err) {
-      setError("Failed to generate cards. Please check your API key and try again.");
+      logError(err, { component: 'FlashcardCreator', action: 'handleGenerate', metadata: { topic, imageCount: images.length } });
+      setError(`Failed to generate cards. ${getUserFriendlyMessage(err)}`);
     } finally {
       setLoading(false);
     }
