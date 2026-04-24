@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { LayoutGrid, Plus, Mic, Tv, Search, Play, BookOpen, Compass, X, Moon, Sun, Upload } from 'lucide-react';
+import { LayoutGrid, Plus, Mic, Tv, Search, Compass, X, Moon, Sun, Upload } from 'lucide-react';
 import clsx from 'clsx';
 import { Deck, ThemeName, AppView } from './types';
 import { THEMES, INITIAL_DECKS } from './constants';
@@ -218,9 +218,6 @@ const App: React.FC = () => {
 
   // Bottom Navigation (Hide in immersive modes)
   const showNav = !['study-mode', 'create', 'transcribe', 'mirrored-session', 'import'].includes(view);
-
-  // If we are broadcasting, we might want to highlight the mirror tab or show a banner, 
-  // but for now, the status is handled inside the Mirror view or the Study session header.
 
   return (
     <div className={clsx("h-screen w-full bg-background flex flex-col overflow-hidden mx-auto shadow-2xl relative transition-all duration-300", 

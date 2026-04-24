@@ -28,14 +28,3 @@ export const shuffleArray = <T>(array: T[]): T[] => {
   return shuffled;
 };
 
-/**
- * Generates a random room code for mirror mode
- */
-export const generateRoomCode = (): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = 'KZN-';
-  for (let i = 0; i < 2; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-};

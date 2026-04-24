@@ -51,28 +51,19 @@ const StudySession: React.FC<StudySessionProps> = ({ deck, onExit, isBroadcastin
   const handleCardResult = (known: boolean) => {
     setIsFlipped(false);
 
-    // Small delay to allow flip back animation if needed, but usually we just slide
     setTimeout(() => {
       if (known) {
         setSessionStats(prev => ({ ...prev, correct: prev.correct + 1 }));
         setCompleted(prev => [...prev, currentCard]);
-        // Remove from queue logic effectively handled by index increment or filter
-        // For this simple version, we move index forward
         if (currentCardIndex < queue.length - 1) {
             setCurrentCardIndex(prev => prev + 1);
-        } else {
-            // End of current queue
-            // If we had a real spaced repetition, we'd re-queue the unknown ones
-            // For now, simple finish
         }
       } else {
         setSessionStats(prev => ({ ...prev, incorrect: prev.incorrect + 1 }));
-        // Move card to end of queue to review again in this session (Selective Elimination simulation)
         const newQueue = [...queue];
         const card = newQueue.splice(currentCardIndex, 1)[0];
         newQueue.push(card);
         setQueue(newQueue);
-        // Don't increment index, effectively showing next card which slid into this slot
       }
     }, CARD_TRANSITION_DELAY);
   };

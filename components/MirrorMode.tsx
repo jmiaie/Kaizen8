@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { QrCode, Share2, Users, Monitor, Smartphone, Play, ExternalLink, ArrowLeft, Tv, UserPlus, Cast } from 'lucide-react';
-import { Deck } from '../types';
+import { QrCode, Share2, Users, Monitor, Smartphone, ExternalLink, ArrowLeft, Tv, UserPlus, Cast } from 'lucide-react';
 import clsx from 'clsx';
 
 interface MirrorModeProps {

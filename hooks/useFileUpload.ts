@@ -22,13 +22,6 @@ export const useFileUpload = () => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  const clearFiles = useCallback(() => {
-    // Revoke all URLs
-    fileUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-    fileUrlsRef.current = [];
-    setFiles([]);
-  }, []);
-
   // Cleanup all object URLs on component unmount
   useEffect(() => {
     return () => {
@@ -40,7 +33,6 @@ export const useFileUpload = () => {
     files,
     fileUrls: fileUrlsRef.current,
     handleFileChange,
-    removeFile,
-    clearFiles
+    removeFile
   };
 };

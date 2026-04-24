@@ -30,20 +30,6 @@ class MirrorService {
   private notifyListeners(payload: MirrorPayload) {
     this.listeners.forEach(l => l(payload));
   }
-
-  public close() {
-    // Broadcast a close event before closing
-    this.broadcast({ type: 'CLOSE' });
-  }
-
-  public destroy() {
-    // Cleanup method to properly close the channel and remove listeners
-    if (this.channel) {
-      this.channel.close();
-      this.channel = null;
-    }
-    this.listeners = [];
-  }
 }
 
 export const mirrorService = new MirrorService();

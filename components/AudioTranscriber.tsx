@@ -11,7 +11,6 @@ interface AudioTranscriberProps {
 }
 
 const AudioTranscriber: React.FC<AudioTranscriberProps> = ({ onDeckCreated, onCancel }) => {
-    const [isRecording, setIsRecording] = useState(false); // UI simulation only for this demo
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>('');
@@ -51,26 +50,6 @@ const AudioTranscriber: React.FC<AudioTranscriberProps> = ({ onDeckCreated, onCa
             <p className="text-text opacity-70">Record a lecture or upload a voice note to instantly create a study set.</p>
 
             <div className="flex-1 flex flex-col justify-center gap-6">
-                {/* Recording Simulation */}
-                <button 
-                    className={`w-full py-12 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${isRecording ? 'border-red-500 bg-red-50' : 'border-secondary bg-white/50'}`}
-                    onClick={() => setIsRecording(!isRecording)}
-                >
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-secondary text-text'}`}>
-                        <Mic size={40} />
-                    </div>
-                    <span className="font-bold text-text">{isRecording ? 'Tap to Stop' : 'Tap to Record'}</span>
-                </button>
-
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-background text-gray-500">Or upload file</span>
-                    </div>
-                </div>
-
                 <label className="w-full py-6 rounded-2xl bg-card shadow-sm flex items-center justify-center gap-3 cursor-pointer border border-transparent hover:border-accent">
                     <FileAudio className="text-accent" />
                     <span className="text-text font-medium truncate max-w-[200px]">

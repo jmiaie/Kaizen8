@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { INITIAL_CHALLENGES } from '../constants';
-import { Trophy, Users, User, Briefcase } from 'lucide-react';
+import { Users, User, Briefcase } from 'lucide-react';
 import clsx from 'clsx';
 
 const ChallengesView: React.FC = () => {

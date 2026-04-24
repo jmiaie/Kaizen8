@@ -56,13 +56,6 @@ export interface ThemeColors {
   navBar: string;
 }
 
-export interface AudioTranscript {
-  id: string;
-  text: string;
-  summary: string;
-  createdAt: number;
-}
-
 export interface MirrorPayload {
   type: 'SYNC' | 'CLOSE';
   deckTitle?: string;
@@ -72,4 +65,4 @@ export interface MirrorPayload {
   totalCards?: number;
 }
 
-export type AppView = 'home' | 'deck-view' | 'create' | 'study-mode' | 'transcribe' | 'mirror' | 'explore' | 'mirrored-session' | 'import';
+export type AppView = 'home' | 'create' | 'study-mode' | 'transcribe' | 'mirror' | 'explore' | 'mirrored-session' | 'import';

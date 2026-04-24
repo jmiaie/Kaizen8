@@ -70,7 +70,7 @@ export const INITIAL_CHALLENGES: Challenge[] = [
   {
     id: 'ch2',
     title: 'Build a Bridge',
-    description: 'Engineering project: Design a bridge using limited materials (simulated).',
+    description: 'Engineering project: Design a bridge using limited materials.',
     type: 'project',
     mode: 'multi',
     difficulty: 'medium',
