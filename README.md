@@ -1,3 +1,6 @@
+> **Status (2026-09-30):** abandoned flashcard WIP — see [`STATUS.md`](STATUS.md).  
+> HTML entry does not currently mount `index.tsx`; treat as incomplete scaffold.
+
 # Project: Kaizen8
 # Developer / Software Engineer: Jeff Milam
 
