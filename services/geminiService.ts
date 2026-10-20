@@ -1,7 +1,19 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { Flashcard, InfographicData } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Gemini is called through the server-side proxy in api/gemini.ts so the API
+// key never reaches the browser bundle. Prompts, schemas and the model live there.
+async function callGeminiProxy<T>(payload: Record<string, unknown>): Promise<T> {
+  const res = await fetch('/api/gemini', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.error || `AI proxy request failed (${res.status})`);
+  }
+  return data.result as T;
+}
 
 // Helper to convert file to base64
 export const fileToGenerativePart = async (file: File): Promise<string> => {
@@ -30,41 +42,7 @@ export const generateFlashcardsFromImages = async (
       }))
     );
 
-    const prompt = `Create a comprehensive set of flashcards based on these images. 
-    Topic focus: ${topic}. 
-    Each card should have a clear question (front) and a concise answer (back).
-    Assign a category and an estimated difficulty (easy, medium, hard).
-    Also provide a short 'deep dive' search query related to the concept.
-    Return JSON only.`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: {
-        parts: [
-          ...parts,
-          { text: prompt }
-        ]
-      },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              front: { type: Type.STRING },
-              back: { type: Type.STRING },
-              category: { type: Type.STRING },
-              difficulty: { type: Type.STRING, enum: ['easy', 'medium', 'hard'] },
-              deepDiveQuery: { type: Type.STRING }
-            },
-            required: ['front', 'back', 'category', 'difficulty']
-          }
-        }
-      }
-    });
-
-    const rawCards = JSON.parse(response.text || '[]');
+    const rawCards = await callGeminiProxy<any[]>({ op: 'generateFlashcards', files: parts.map((p) => p.inlineData), topic });
     
     return rawCards.map((c: any, index: number) => ({
       id: `gen-${Date.now()}-${index}`,
@@ -85,46 +63,10 @@ export const transcribeAndSummarizeAudio = async (audioFile: File): Promise<{ te
   try {
     const audioBase64 = await fileToGenerativePart(audioFile);
 
-    const prompt = `Transcribe this audio recording and then generate 5 key flashcards to help study the content.
-    Return a JSON object with a 'transcript' string and a 'flashcards' array.`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType: audioFile.type, // e.g. audio/mp3, audio/wav
-              data: audioBase64
-            }
-          },
-          { text: prompt }
-        ]
-      },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            transcript: { type: Type.STRING },
-            flashcards: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  front: { type: Type.STRING },
-                  back: { type: Type.STRING },
-                  category: { type: Type.STRING },
-                  difficulty: { type: Type.STRING }
-                }
-              }
-            }
-          }
-        }
-      }
+    const result = await callGeminiProxy<any>({
+      op: 'transcribeAudio',
+      audio: { data: audioBase64, mimeType: audioFile.type }, // e.g. audio/mp3, audio/wav
     });
-
-    const result = JSON.parse(response.text || '{}');
     
     const flashcards = (result.flashcards || []).map((c: any, index: number) => ({
         id: `audio-gen-${Date.now()}-${index}`,
@@ -157,64 +99,7 @@ export const generateInfographicAndCards = async (files: File[]): Promise<{ info
       }))
     );
 
-    const prompt = `Analyze the provided visual content (documents, diagrams, or slides). 
-    1. Create a "Learning Infographic" structure: A structured summary divided into 3-5 distinct sections, each with a title, a brief content summary, a suggested emoji/icon, and a color theme.
-    2. Generate a set of 5-10 high-quality flashcards based on the material.
-    3. Return JSON.`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: {
-        parts: [
-          ...parts,
-          { text: prompt }
-        ]
-      },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            infographic: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                summary: { type: Type.STRING },
-                sections: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      title: { type: Type.STRING },
-                      content: { type: Type.STRING },
-                      icon: { type: Type.STRING },
-                      color: { type: Type.STRING, enum: ['blue', 'green', 'purple', 'orange', 'red'] }
-                    }
-                  }
-                }
-              },
-              required: ['title', 'summary', 'sections']
-            },
-            flashcards: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  front: { type: Type.STRING },
-                  back: { type: Type.STRING },
-                  category: { type: Type.STRING },
-                  difficulty: { type: Type.STRING, enum: ['easy', 'medium', 'hard'] },
-                  deepDiveQuery: { type: Type.STRING }
-                },
-                required: ['front', 'back', 'category', 'difficulty']
-              }
-            }
-          }
-        }
-      }
-    });
-
-    const result = JSON.parse(response.text || '{}');
+    const result = await callGeminiProxy<any>({ op: 'generateInfographic', files: parts.map((p) => p.inlineData) });
     
     const flashcards = (result.flashcards || []).map((c: any, index: number) => ({
         id: `info-gen-${Date.now()}-${index}`,
